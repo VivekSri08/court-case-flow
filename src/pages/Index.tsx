@@ -53,6 +53,21 @@ const Index = () => {
     return filtered;
   }, [dashboardData.cases, searchQuery, statusFilter]);
 
+  // Calculate stats - moved before conditional return
+  const stats = useMemo(() => {
+    const allOrders = dashboardData.cases.flatMap(case_ => case_.orders);
+    const pendingOrders = allOrders.filter(order => order.status !== 'completed');
+    const completedOrders = allOrders.filter(order => order.status === 'completed');
+    const urgentCases = dashboardData.cases.filter(case_ => case_.urgency === 'urgent');
+
+    return {
+      totalCases: dashboardData.cases.length,
+      pendingOrders: pendingOrders.length,
+      completedOrders: completedOrders.length,
+      urgentCases: urgentCases.length,
+    };
+  }, [dashboardData.cases]);
+
   const handleStatusUpdate = (caseId: string, orderId: string, status: 'pending' | 'in-progress' | 'completed') => {
     setDashboardData(prev => ({
       ...prev,
@@ -111,21 +126,6 @@ const Index = () => {
   if (!isAuthenticated) {
     return <LoginPage onLogin={() => setIsAuthenticated(true)} />;
   }
-
-  // Recalculate stats
-  const stats = useMemo(() => {
-    const allOrders = dashboardData.cases.flatMap(case_ => case_.orders);
-    const pendingOrders = allOrders.filter(order => order.status !== 'completed');
-    const completedOrders = allOrders.filter(order => order.status === 'completed');
-    const urgentCases = dashboardData.cases.filter(case_ => case_.urgency === 'urgent');
-
-    return {
-      totalCases: dashboardData.cases.length,
-      pendingOrders: pendingOrders.length,
-      completedOrders: completedOrders.length,
-      urgentCases: urgentCases.length,
-    };
-  }, [dashboardData.cases]);
 
   return (
     <div className="min-h-screen bg-muted/30">
