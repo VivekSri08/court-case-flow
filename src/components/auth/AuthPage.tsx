@@ -116,8 +116,10 @@ export function AuthPage() {
       } else {
         toast({
           title: 'Account Created!',
-          description: 'Please check your email to verify your account.',
+          description: 'Welcome to CourtTracker! You can now access your dashboard.',
         });
+        // Auto-login when email confirmation is disabled
+        setActiveTab('login');
       }
     } catch (error) {
       toast({
