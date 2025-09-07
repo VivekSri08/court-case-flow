@@ -1,5 +1,5 @@
-import { useState, useMemo } from "react";
-import { LoginPage } from "@/components/auth/LoginPage";
+import { useState, useMemo, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { DashboardHeader } from "@/components/dashboard/DashboardHeader";
 import { DashboardStats } from "@/components/dashboard/DashboardStats";
 import { CaseCard } from "@/components/dashboard/CaseCard";
@@ -7,15 +7,23 @@ import { UploadOrderDialog } from "@/components/dashboard/UploadOrderDialog";
 import { getMockDashboardData } from "@/data/mockData";
 import { CourtCase, CourtOrder } from "@/types/court-case";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/hooks/useAuth";
 
 const Index = () => {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const { user, loading, signOut } = useAuth();
+  const navigate = useNavigate();
   const [dashboardData, setDashboardData] = useState(getMockDashboardData());
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [uploadDialogOpen, setUploadDialogOpen] = useState(false);
   const [selectedCaseNumber, setSelectedCaseNumber] = useState<string>();
   const { toast } = useToast();
+
+  useEffect(() => {
+    if (!loading && !user) {
+      navigate('/auth');
+    }
+  }, [user, loading, navigate]);
 
   const filteredCases = useMemo(() => {
     let filtered = dashboardData.cases;
@@ -123,8 +131,19 @@ const Index = () => {
     });
   };
 
-  if (!isAuthenticated) {
-    return <LoginPage onLogin={() => setIsAuthenticated(true)} />;
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4" />
+          <p className="text-muted-foreground">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return null;
   }
 
   return (
@@ -139,7 +158,7 @@ const Index = () => {
             setSelectedCaseNumber(undefined);
             setUploadDialogOpen(true);
           }}
-          onLogout={() => setIsAuthenticated(false)}
+          onLogout={signOut}
         />
 
         <DashboardStats {...stats} />
