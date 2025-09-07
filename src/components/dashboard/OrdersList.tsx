@@ -2,19 +2,34 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { FileText, Calendar, Clock } from "lucide-react";
+import { FileText, Calendar, Clock, CheckCircle } from "lucide-react";
 import { CourtOrder } from "@/types/court-case";
 import { format } from "date-fns";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { useState } from "react";
+import { CompleteOrderDialog } from "./CompleteOrderDialog";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 
 interface OrdersListProps {
   orders: CourtOrder[];
   onStatusUpdate: (orderId: string, status: 'pending' | 'in-progress' | 'completed') => void;
 }
 
+interface CompleteOrderDialogState {
+  open: boolean;
+  orderId: string;
+  orderTitle: string;
+}
+
 export function OrdersList({ orders, onStatusUpdate }: OrdersListProps) {
   const [showCompleted, setShowCompleted] = useState(false);
+  const [completeDialog, setCompleteDialog] = useState<CompleteOrderDialogState>({
+    open: false,
+    orderId: '',
+    orderTitle: ''
+  });
+  const { toast } = useToast();
 
   const pendingOrders = orders.filter(order => order.status !== 'completed');
   const completedOrders = orders.filter(order => order.status === 'completed');
@@ -70,9 +85,17 @@ export function OrdersList({ orders, onStatusUpdate }: OrdersListProps) {
             <span className="text-sm font-medium">Status:</span>
             <Select
               value={order.status}
-              onValueChange={(value: 'pending' | 'in-progress' | 'completed') => 
-                onStatusUpdate(order.id, value)
-              }
+              onValueChange={(value: 'pending' | 'in-progress' | 'completed') => {
+                if (value === 'completed') {
+                  setCompleteDialog({
+                    open: true,
+                    orderId: order.id,
+                    orderTitle: order.fileName
+                  });
+                } else {
+                  onStatusUpdate(order.id, value);
+                }
+              }}
             >
               <SelectTrigger className="w-32">
                 <SelectValue />
@@ -88,6 +111,14 @@ export function OrdersList({ orders, onStatusUpdate }: OrdersListProps) {
       </CardContent>
     </Card>
   );
+
+  const handleOrderComplete = async (orderId: string, completionDate: string, documentUrl?: string) => {
+    onStatusUpdate(orderId, 'completed');
+    toast({
+      title: "Order completed",
+      description: "Order has been marked as completed successfully",
+    });
+  };
 
   return (
     <div className="space-y-4">
@@ -119,6 +150,14 @@ export function OrdersList({ orders, onStatusUpdate }: OrdersListProps) {
           </CollapsibleContent>
         </Collapsible>
       )}
+
+      <CompleteOrderDialog
+        open={completeDialog.open}
+        onOpenChange={(open) => setCompleteDialog(prev => ({ ...prev, open }))}
+        orderId={completeDialog.orderId}
+        orderTitle={completeDialog.orderTitle}
+        onComplete={handleOrderComplete}
+      />
     </div>
   );
 }

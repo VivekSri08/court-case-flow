@@ -19,13 +19,7 @@ interface UploadOrderDialogProps {
 export function UploadOrderDialog({ open, onOpenChange, caseNumber, onUpload }: UploadOrderDialogProps) {
   const [courtOrderFile, setCourtOrderFile] = useState<File | null>(null);
   const [caseStatusFile, setCaseStatusFile] = useState<File | null>(null);
-  const [formData, setFormData] = useState({
-    caseNumber: caseNumber || '',
-    orderDate: '',
-    summary: '',
-    actionRequired: '',
-    deadline: '',
-  });
+  // Remove form data state - we only need files now
   const [isUploading, setIsUploading] = useState(false);
   const { toast } = useToast();
 
@@ -60,10 +54,10 @@ export function UploadOrderDialog({ open, onOpenChange, caseNumber, onUpload }: 
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if ((!courtOrderFile && !caseStatusFile) || !formData.caseNumber) {
+    if (!courtOrderFile && !caseStatusFile) {
       toast({
-        title: "Missing information",
-        description: "Please provide a case number and at least one file (Court Order or Case Status)",
+        title: "Missing files",
+        description: "Please upload at least one file (Court Order or Case Status)",
         variant: "destructive",
       });
       return;
@@ -83,11 +77,6 @@ export function UploadOrderDialog({ open, onOpenChange, caseNumber, onUpload }: 
 
       // Prepare form data for webhook
       const webhookFormData = new FormData();
-      webhookFormData.append('caseNumber', formData.caseNumber);
-      webhookFormData.append('orderDate', formData.orderDate);
-      webhookFormData.append('summary', formData.summary);
-      webhookFormData.append('actionRequired', formData.actionRequired);
-      webhookFormData.append('deadline', formData.deadline);
       webhookFormData.append('userId', user.id);
       
       if (courtOrderFile) {
@@ -111,14 +100,14 @@ export function UploadOrderDialog({ open, onOpenChange, caseNumber, onUpload }: 
       const uploadPromises = [];
       
       if (courtOrderFile) {
-        const courtOrderPath = `${user.id}/${formData.caseNumber}/court-order-${Date.now()}.${courtOrderFile.name.split('.').pop()}`;
+        const courtOrderPath = `${user.id}/court-order-${Date.now()}.${courtOrderFile.name.split('.').pop()}`;
         uploadPromises.push(
           supabase.storage.from('court-documents').upload(courtOrderPath, courtOrderFile)
         );
       }
       
       if (caseStatusFile) {
-        const caseStatusPath = `${user.id}/${formData.caseNumber}/case-status-${Date.now()}.${caseStatusFile.name.split('.').pop()}`;
+        const caseStatusPath = `${user.id}/case-status-${Date.now()}.${caseStatusFile.name.split('.').pop()}`;
         uploadPromises.push(
           supabase.storage.from('court-documents').upload(caseStatusPath, caseStatusFile)
         );
@@ -134,13 +123,6 @@ export function UploadOrderDialog({ open, onOpenChange, caseNumber, onUpload }: 
       // Reset form
       setCourtOrderFile(null);
       setCaseStatusFile(null);
-      setFormData({
-        caseNumber: '',
-        orderDate: '',
-        summary: '',
-        actionRequired: '',
-        deadline: '',
-      });
       onOpenChange(false);
     } catch (error) {
       console.error('Upload error:', error);
@@ -160,7 +142,7 @@ export function UploadOrderDialog({ open, onOpenChange, caseNumber, onUpload }: 
         <DialogHeader>
           <DialogTitle>Upload Court Documents</DialogTitle>
           <DialogDescription>
-            Upload court order and/or case status documents. Files will be processed using AI to extract relevant information.
+            Upload court order and/or case status documents. The AI will automatically extract case details, order information, and required actions.
           </DialogDescription>
         </DialogHeader>
         
@@ -221,59 +203,6 @@ export function UploadOrderDialog({ open, onOpenChange, caseNumber, onUpload }: 
                 </div>
               )}
             </div>
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="caseNumber">Case Number *</Label>
-            <Input
-              id="caseNumber"
-              value={formData.caseNumber}
-              onChange={(e) => setFormData(prev => ({ ...prev, caseNumber: e.target.value }))}
-              placeholder="e.g., WP/12345/2024"
-              disabled={!!caseNumber}
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="orderDate">Order Date *</Label>
-            <Input
-              id="orderDate"
-              type="date"
-              value={formData.orderDate}
-              onChange={(e) => setFormData(prev => ({ ...prev, orderDate: e.target.value }))}
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="summary">Order Summary *</Label>
-            <Textarea
-              id="summary"
-              value={formData.summary}
-              onChange={(e) => setFormData(prev => ({ ...prev, summary: e.target.value }))}
-              placeholder="Brief summary of the court order..."
-              rows={3}
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="actionRequired">Action Required *</Label>
-            <Textarea
-              id="actionRequired"
-              value={formData.actionRequired}
-              onChange={(e) => setFormData(prev => ({ ...prev, actionRequired: e.target.value }))}
-              placeholder="What actions need to be taken..."
-              rows={2}
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="deadline">Deadline (Optional)</Label>
-            <Input
-              id="deadline"
-              type="date"
-              value={formData.deadline}
-              onChange={(e) => setFormData(prev => ({ ...prev, deadline: e.target.value }))}
-            />
           </div>
 
           <div className="flex gap-2 pt-4">

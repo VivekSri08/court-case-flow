@@ -4,24 +4,100 @@ import { DashboardHeader } from "@/components/dashboard/DashboardHeader";
 import { DashboardStats } from "@/components/dashboard/DashboardStats";
 import { CaseCard } from "@/components/dashboard/CaseCard";
 import { UploadOrderDialog } from "@/components/dashboard/UploadOrderDialog";
-import { getMockDashboardData } from "@/data/mockData";
 import { CourtCase, CourtOrder } from "@/types/court-case";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
+import { supabase } from "@/integrations/supabase/client";
 
 const Index = () => {
   const { user, loading, signOut } = useAuth();
   const navigate = useNavigate();
-  const [dashboardData, setDashboardData] = useState(getMockDashboardData());
+  const [dashboardData, setDashboardData] = useState<{ cases: CourtCase[] }>({ cases: [] });
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [uploadDialogOpen, setUploadDialogOpen] = useState(false);
   const [selectedCaseNumber, setSelectedCaseNumber] = useState<string>();
+  const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
+
+  // Fetch cases and orders from database
+  const fetchCasesAndOrders = async () => {
+    if (!user) return;
+    
+    try {
+      setIsLoading(true);
+      
+      // Fetch cases
+      const { data: cases, error: casesError } = await supabase
+        .from('court_cases')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false });
+
+      if (casesError) throw casesError;
+
+      // Fetch orders for each case
+      const { data: orders, error: ordersError } = await supabase
+        .from('court_orders')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false });
+
+      if (ordersError) throw ordersError;
+
+      // Group orders by case_id
+      const ordersByCase = orders?.reduce((acc, order) => {
+        if (!acc[order.case_id]) acc[order.case_id] = [];
+        acc[order.case_id].push({
+          id: order.id,
+          caseNumber: order.case_id, // Will be updated with actual case number
+          orderDate: new Date(order.order_date),
+          uploadDate: new Date(order.created_at),
+          fileName: order.file_name,
+          fileUrl: order.file_url,
+          thumbnail: order.thumbnail_url,
+          summary: order.summary || '',
+          actionRequired: order.action_required || '',
+          deadline: order.deadline ? new Date(order.deadline) : undefined,
+          status: order.status as 'pending' | 'in-progress' | 'completed'
+        });
+        return acc;
+      }, {} as Record<string, CourtOrder[]>) || {};
+
+      // Map cases with their orders
+      const formattedCases: CourtCase[] = cases?.map(case_ => ({
+        id: case_.id,
+        caseNumber: case_.case_number,
+        petitioner: case_.petitioner,
+        respondent: case_.respondent,
+        courtName: case_.court_name,
+        latestOrderDate: case_.latest_order_date ? new Date(case_.latest_order_date) : new Date(),
+        nextHearingDate: case_.next_hearing_date ? new Date(case_.next_hearing_date) : undefined,
+        orders: ordersByCase[case_.id]?.map(order => ({
+          ...order,
+          caseNumber: case_.case_number
+        })) || [],
+        urgency: case_.urgency as 'urgent' | 'warning' | 'normal'
+      })) || [];
+
+      setDashboardData({ cases: formattedCases });
+    } catch (error) {
+      console.error('Error fetching data:', error);
+      toast({
+        title: "Error fetching data",
+        description: "Failed to load cases and orders. Please refresh the page.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   useEffect(() => {
     if (!loading && !user) {
       navigate('/auth');
+    } else if (user) {
+      fetchCasesAndOrders();
     }
   }, [user, loading, navigate]);
 
@@ -97,41 +173,16 @@ const Index = () => {
     });
   };
 
-  const handleUploadOrder = (orderData: CourtOrder) => {
-    setDashboardData(prev => {
-      const existingCaseIndex = prev.cases.findIndex(
-        case_ => case_.caseNumber === orderData.caseNumber
-      );
-
-      if (existingCaseIndex >= 0) {
-        // Add to existing case
-        const updatedCases = [...prev.cases];
-        updatedCases[existingCaseIndex] = {
-          ...updatedCases[existingCaseIndex],
-          orders: [...updatedCases[existingCaseIndex].orders, orderData],
-          latestOrderDate: orderData.orderDate > updatedCases[existingCaseIndex].latestOrderDate 
-            ? orderData.orderDate 
-            : updatedCases[existingCaseIndex].latestOrderDate
-        };
-        return { ...prev, cases: updatedCases };
-      } else {
-        // Create new case
-        const newCase: CourtCase = {
-          id: `case_${Date.now()}`,
-          caseNumber: orderData.caseNumber,
-          petitioner: "New Petitioner",
-          respondent: "New Respondent",
-          courtName: "Court Name",
-          latestOrderDate: orderData.orderDate,
-          orders: [orderData],
-          urgency: 'normal'
-        };
-        return { ...prev, cases: [...prev.cases, newCase] };
-      }
+  const handleUploadOrder = () => {
+    // Refresh data after upload
+    fetchCasesAndOrders();
+    toast({
+      title: "Upload successful",
+      description: "Files have been uploaded for processing. Data will be updated shortly.",
     });
   };
 
-  if (loading) {
+  if (loading || isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
