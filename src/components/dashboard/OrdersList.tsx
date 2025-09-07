@@ -78,7 +78,39 @@ export function OrdersList({ orders, onStatusUpdate }: OrdersListProps) {
               <span>Deadline: {format(order.deadline, 'dd/MM/yyyy')}</span>
             </div>
           )}
+          {order.status === 'completed' && order.completionDate && (
+            <div className="flex items-center gap-1">
+              <CheckCircle className="w-4 h-4" />
+              <span>Completed: {format(order.completionDate, 'dd/MM/yyyy')}</span>
+            </div>
+          )}
         </div>
+
+        {order.status === 'completed' && order.completionDocumentUrl && (
+          <div className="flex items-center gap-2 text-sm">
+            <span className="font-medium">Completion Document:</span>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={async () => {
+                try {
+                  window.open(order.completionDocumentUrl, '_blank');
+                } catch (error) {
+                  console.error('Error opening document:', error);
+                  toast({
+                    title: "Error",
+                    description: "Could not open the completion document",
+                    variant: "destructive",
+                  });
+                }
+              }}
+              className="flex items-center gap-1"
+            >
+              <FileText className="w-4 h-4" />
+              View Document
+            </Button>
+          </div>
+        )}
 
         {order.status !== 'completed' && (
           <div className="flex items-center gap-2">

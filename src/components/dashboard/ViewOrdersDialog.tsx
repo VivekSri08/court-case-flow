@@ -20,6 +20,8 @@ interface CourtOrder {
   action_required?: string;
   status: 'pending' | 'in-progress' | 'completed';
   created_at: string;
+  completion_date?: string;
+  completion_document_url?: string;
 }
 
 interface ViewOrdersDialogProps {
@@ -181,6 +183,12 @@ export function ViewOrdersDialog({ open, onOpenChange, caseId, caseNumber }: Vie
                                 <span>Deadline: {format(new Date(order.deadline), 'MMM dd, yyyy')}</span>
                               </div>
                             )}
+                            {order.status === 'completed' && order.completion_date && (
+                              <div className="flex items-center gap-1">
+                                <Calendar className="w-4 h-4 text-green-600" />
+                                <span>Completed: {format(new Date(order.completion_date), 'MMM dd, yyyy')}</span>
+                              </div>
+                            )}
                           </div>
                         </div>
                         
@@ -216,7 +224,7 @@ export function ViewOrdersDialog({ open, onOpenChange, caseId, caseNumber }: Vie
                           className="flex items-center gap-1"
                         >
                           <Eye className="w-4 h-4" />
-                          View
+                          View Order
                         </Button>
                         <Button
                           size="sm"
@@ -227,6 +235,17 @@ export function ViewOrdersDialog({ open, onOpenChange, caseId, caseNumber }: Vie
                           <Download className="w-4 h-4" />
                           Download
                         </Button>
+                        {order.status === 'completed' && order.completion_document_url && (
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => handleView(order.completion_document_url!)}
+                            className="flex items-center gap-1"
+                          >
+                            <FileText className="w-4 h-4" />
+                            View Completion Doc
+                          </Button>
+                        )}
                       </div>
                     </div>
                   </div>
