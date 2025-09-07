@@ -69,8 +69,12 @@ export type Database = {
         Row: {
           action_required: string | null
           case_id: string
+          case_status_file_name: string | null
+          case_status_file_url: string | null
           completion_date: string | null
           completion_document_url: string | null
+          court_order_file_name: string | null
+          court_order_file_url: string | null
           created_at: string
           deadline: string | null
           extracted_data: Json | null
@@ -88,8 +92,12 @@ export type Database = {
         Insert: {
           action_required?: string | null
           case_id: string
+          case_status_file_name?: string | null
+          case_status_file_url?: string | null
           completion_date?: string | null
           completion_document_url?: string | null
+          court_order_file_name?: string | null
+          court_order_file_url?: string | null
           created_at?: string
           deadline?: string | null
           extracted_data?: Json | null
@@ -107,8 +115,12 @@ export type Database = {
         Update: {
           action_required?: string | null
           case_id?: string
+          case_status_file_name?: string | null
+          case_status_file_url?: string | null
           completion_date?: string | null
           completion_document_url?: string | null
+          court_order_file_name?: string | null
+          court_order_file_url?: string | null
           created_at?: string
           deadline?: string | null
           extracted_data?: Json | null

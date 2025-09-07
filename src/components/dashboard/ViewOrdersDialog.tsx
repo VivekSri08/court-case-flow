@@ -14,6 +14,10 @@ interface CourtOrder {
   file_name: string;
   file_url: string;
   file_type: string;
+  court_order_file_url?: string;
+  court_order_file_name?: string;
+  case_status_file_url?: string;
+  case_status_file_name?: string;
   order_date: string;
   deadline?: string;
   summary?: string;
@@ -216,25 +220,80 @@ export function ViewOrdersDialog({ open, onOpenChange, caseId, caseNumber }: Vie
                         </div>
                       )}
 
-                      <div className="flex items-center gap-2 mt-3">
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => handleView(order.file_url)}
-                          className="flex items-center gap-1"
-                        >
-                          <Eye className="w-4 h-4" />
-                          View Order
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => handleDownload(order.file_url, order.file_name)}
-                          className="flex items-center gap-1"
-                        >
-                          <Download className="w-4 h-4" />
-                          Download
-                        </Button>
+                      <div className="flex flex-wrap items-center gap-2 mt-3">
+                        {/* Legacy file handling for backward compatibility */}
+                        {order.file_url && !order.court_order_file_url && !order.case_status_file_url && (
+                          <>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => handleView(order.file_url)}
+                              className="flex items-center gap-1"
+                            >
+                              <Eye className="w-4 h-4" />
+                              View Document
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => handleDownload(order.file_url, order.file_name)}
+                              className="flex items-center gap-1"
+                            >
+                              <Download className="w-4 h-4" />
+                              Download
+                            </Button>
+                          </>
+                        )}
+
+                        {/* Court Order Document */}
+                        {order.court_order_file_url && (
+                          <>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => handleView(order.court_order_file_url!)}
+                              className="flex items-center gap-1"
+                            >
+                              <Eye className="w-4 h-4" />
+                              View Court Order
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => handleDownload(order.court_order_file_url!, order.court_order_file_name || 'court-order.pdf')}
+                              className="flex items-center gap-1"
+                            >
+                              <Download className="w-4 h-4" />
+                              Download Order
+                            </Button>
+                          </>
+                        )}
+
+                        {/* Case Status Document */}
+                        {order.case_status_file_url && (
+                          <>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => handleView(order.case_status_file_url!)}
+                              className="flex items-center gap-1"
+                            >
+                              <Eye className="w-4 h-4" />
+                              View Case Status
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => handleDownload(order.case_status_file_url!, order.case_status_file_name || 'case-status.pdf')}
+                              className="flex items-center gap-1"
+                            >
+                              <Download className="w-4 h-4" />
+                              Download Status
+                            </Button>
+                          </>
+                        )}
+
+                        {/* Completion Document */}
                         {order.status === 'completed' && order.completion_document_url && (
                           <Button
                             size="sm"

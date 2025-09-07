@@ -5,6 +5,10 @@ export interface CourtOrder {
   uploadDate: Date;
   fileName: string;
   fileUrl: string;
+  courtOrderFileUrl?: string;
+  courtOrderFileName?: string;
+  caseStatusFileUrl?: string;
+  caseStatusFileName?: string;
   thumbnail?: string;
   summary: string;
   actionRequired: string;

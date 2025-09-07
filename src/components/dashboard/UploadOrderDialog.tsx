@@ -75,15 +75,32 @@ export function UploadOrderDialog({ open, onOpenChange, caseNumber, onUpload }: 
         return;
       }
 
-      // Prepare form data for webhook
+      // Create timestamp for consistent file naming
+      const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+
+      // Prepare form data for webhook with improved file naming
       const webhookFormData = new FormData();
       webhookFormData.append('userId', user.id);
       
       if (courtOrderFile) {
-        webhookFormData.append('courtOrder', courtOrderFile);
+        // Create a new file with standardized naming
+        const courtOrderBlob = new Blob([courtOrderFile], { type: courtOrderFile.type });
+        const standardizedCourtOrder = new File(
+          [courtOrderBlob], 
+          `court-order-${timestamp}.${courtOrderFile.name.split('.').pop()}`,
+          { type: courtOrderFile.type }
+        );
+        webhookFormData.append('data', standardizedCourtOrder);
       }
       if (caseStatusFile) {
-        webhookFormData.append('caseStatus', caseStatusFile);
+        // Create a new file with standardized naming
+        const caseStatusBlob = new Blob([caseStatusFile], { type: caseStatusFile.type });
+        const standardizedCaseStatus = new File(
+          [caseStatusBlob], 
+          `case-status-${timestamp}.${caseStatusFile.name.split('.').pop()}`,
+          { type: caseStatusFile.type }
+        );
+        webhookFormData.append('data', standardizedCaseStatus);
       }
 
       // Send to webhook
@@ -100,14 +117,14 @@ export function UploadOrderDialog({ open, onOpenChange, caseNumber, onUpload }: 
       const uploadPromises = [];
       
       if (courtOrderFile) {
-        const courtOrderPath = `${user.id}/court-order-${Date.now()}.${courtOrderFile.name.split('.').pop()}`;
+        const courtOrderPath = `${user.id}/court-order-${timestamp}.${courtOrderFile.name.split('.').pop()}`;
         uploadPromises.push(
           supabase.storage.from('court-documents').upload(courtOrderPath, courtOrderFile)
         );
       }
       
       if (caseStatusFile) {
-        const caseStatusPath = `${user.id}/case-status-${Date.now()}.${caseStatusFile.name.split('.').pop()}`;
+        const caseStatusPath = `${user.id}/case-status-${timestamp}.${caseStatusFile.name.split('.').pop()}`;
         uploadPromises.push(
           supabase.storage.from('court-documents').upload(caseStatusPath, caseStatusFile)
         );
