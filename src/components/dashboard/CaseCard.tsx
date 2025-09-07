@@ -3,9 +3,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { ChevronDown, ChevronUp, FileText, Calendar, Upload } from "lucide-react";
+import { ChevronDown, ChevronUp, FileText, Calendar, Upload, Eye } from "lucide-react";
 import { CourtCase } from "@/types/court-case";
 import { OrdersList } from "./OrdersList";
+import { ViewOrdersDialog } from "./ViewOrdersDialog";
 import { format } from "date-fns";
 
 interface CaseCardProps {
@@ -16,6 +17,7 @@ interface CaseCardProps {
 
 export function CaseCard({ courtCase, onStatusUpdate, onUploadOrder }: CaseCardProps) {
   const [isExpanded, setIsExpanded] = useState(false);
+  const [showViewOrdersDialog, setShowViewOrdersDialog] = useState(false);
 
   const getUrgencyColor = (urgency: 'urgent' | 'warning' | 'normal') => {
     switch (urgency) {
@@ -83,6 +85,14 @@ export function CaseCard({ courtCase, onStatusUpdate, onUploadOrder }: CaseCardP
             <Button
               variant="outline"
               size="sm"
+              onClick={() => setShowViewOrdersDialog(true)}
+            >
+              <Eye className="w-4 h-4 mr-1" />
+              View Orders
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
               onClick={() => onUploadOrder(courtCase.caseNumber)}
             >
               <Upload className="w-4 h-4 mr-1" />
@@ -113,6 +123,13 @@ export function CaseCard({ courtCase, onStatusUpdate, onUploadOrder }: CaseCardP
           </CardContent>
         </CollapsibleContent>
       </Collapsible>
+
+      <ViewOrdersDialog
+        open={showViewOrdersDialog}
+        onOpenChange={setShowViewOrdersDialog}
+        caseId={courtCase.id}
+        caseNumber={courtCase.caseNumber}
+      />
     </Card>
   );
 }
