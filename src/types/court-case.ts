@@ -10,6 +10,8 @@ export interface CourtOrder {
   actionRequired: string;
   deadline?: Date;
   status: 'pending' | 'in-progress' | 'completed';
+  completionDate?: Date;
+  completionDocumentUrl?: string;
 }
 
 export interface CourtCase {

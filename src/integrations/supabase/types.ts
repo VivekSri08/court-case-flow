@@ -69,6 +69,8 @@ export type Database = {
         Row: {
           action_required: string | null
           case_id: string
+          completion_date: string | null
+          completion_document_url: string | null
           created_at: string
           deadline: string | null
           extracted_data: Json | null
@@ -86,6 +88,8 @@ export type Database = {
         Insert: {
           action_required?: string | null
           case_id: string
+          completion_date?: string | null
+          completion_document_url?: string | null
           created_at?: string
           deadline?: string | null
           extracted_data?: Json | null
@@ -103,6 +107,8 @@ export type Database = {
         Update: {
           action_required?: string | null
           case_id?: string
+          completion_date?: string | null
+          completion_document_url?: string | null
           created_at?: string
           deadline?: string | null
           extracted_data?: Json | null
