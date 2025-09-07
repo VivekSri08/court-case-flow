@@ -14,7 +14,173 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      court_cases: {
+        Row: {
+          case_number: string
+          case_summary: string | null
+          case_type: string | null
+          court_name: string
+          created_at: string
+          filing_date: string | null
+          id: string
+          latest_order_date: string | null
+          next_hearing_date: string | null
+          petitioner: string
+          respondent: string
+          updated_at: string
+          urgency: Database["public"]["Enums"]["case_urgency"] | null
+          user_id: string
+        }
+        Insert: {
+          case_number: string
+          case_summary?: string | null
+          case_type?: string | null
+          court_name: string
+          created_at?: string
+          filing_date?: string | null
+          id?: string
+          latest_order_date?: string | null
+          next_hearing_date?: string | null
+          petitioner: string
+          respondent: string
+          updated_at?: string
+          urgency?: Database["public"]["Enums"]["case_urgency"] | null
+          user_id: string
+        }
+        Update: {
+          case_number?: string
+          case_summary?: string | null
+          case_type?: string | null
+          court_name?: string
+          created_at?: string
+          filing_date?: string | null
+          id?: string
+          latest_order_date?: string | null
+          next_hearing_date?: string | null
+          petitioner?: string
+          respondent?: string
+          updated_at?: string
+          urgency?: Database["public"]["Enums"]["case_urgency"] | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      court_orders: {
+        Row: {
+          action_required: string | null
+          case_id: string
+          created_at: string
+          deadline: string | null
+          extracted_data: Json | null
+          file_name: string
+          file_type: string
+          file_url: string
+          id: string
+          order_date: string
+          status: Database["public"]["Enums"]["order_status"] | null
+          summary: string | null
+          thumbnail_url: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          action_required?: string | null
+          case_id: string
+          created_at?: string
+          deadline?: string | null
+          extracted_data?: Json | null
+          file_name: string
+          file_type: string
+          file_url: string
+          id?: string
+          order_date: string
+          status?: Database["public"]["Enums"]["order_status"] | null
+          summary?: string | null
+          thumbnail_url?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          action_required?: string | null
+          case_id?: string
+          created_at?: string
+          deadline?: string | null
+          extracted_data?: Json | null
+          file_name?: string
+          file_type?: string
+          file_url?: string
+          id?: string
+          order_date?: string
+          status?: Database["public"]["Enums"]["order_status"] | null
+          summary?: string | null
+          thumbnail_url?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "court_orders_case_id_fkey"
+            columns: ["case_id"]
+            isOneToOne: false
+            referencedRelation: "court_cases"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          address: string | null
+          avatar_url: string | null
+          bar_registration: string | null
+          city: string | null
+          created_at: string
+          email: string | null
+          firm_name: string | null
+          full_name: string | null
+          id: string
+          phone: string | null
+          practice_areas: string[] | null
+          state: string | null
+          updated_at: string
+          user_id: string
+          zip_code: string | null
+        }
+        Insert: {
+          address?: string | null
+          avatar_url?: string | null
+          bar_registration?: string | null
+          city?: string | null
+          created_at?: string
+          email?: string | null
+          firm_name?: string | null
+          full_name?: string | null
+          id?: string
+          phone?: string | null
+          practice_areas?: string[] | null
+          state?: string | null
+          updated_at?: string
+          user_id: string
+          zip_code?: string | null
+        }
+        Update: {
+          address?: string | null
+          avatar_url?: string | null
+          bar_registration?: string | null
+          city?: string | null
+          created_at?: string
+          email?: string | null
+          firm_name?: string | null
+          full_name?: string | null
+          id?: string
+          phone?: string | null
+          practice_areas?: string[] | null
+          state?: string | null
+          updated_at?: string
+          user_id?: string
+          zip_code?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
@@ -23,7 +189,8 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      [_ in never]: never
+      case_urgency: "urgent" | "warning" | "normal"
+      order_status: "pending" | "in-progress" | "completed"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +317,9 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      case_urgency: ["urgent", "warning", "normal"],
+      order_status: ["pending", "in-progress", "completed"],
+    },
   },
 } as const
