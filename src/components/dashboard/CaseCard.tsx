@@ -13,9 +13,10 @@ interface CaseCardProps {
   courtCase: CourtCase;
   onStatusUpdate: (caseId: string, orderId: string, status: 'pending' | 'in-progress' | 'completed') => void;
   onUploadOrder: (caseNumber: string) => void;
+  onDeleteOrder?: (caseId: string, orderId: string) => void;
 }
 
-export function CaseCard({ courtCase, onStatusUpdate, onUploadOrder }: CaseCardProps) {
+export function CaseCard({ courtCase, onStatusUpdate, onUploadOrder, onDeleteOrder }: CaseCardProps) {
   const [isExpanded, setIsExpanded] = useState(false);
   const [showViewOrdersDialog, setShowViewOrdersDialog] = useState(false);
 
@@ -119,6 +120,7 @@ export function CaseCard({ courtCase, onStatusUpdate, onUploadOrder }: CaseCardP
             <OrdersList
               orders={courtCase.orders}
               onStatusUpdate={(orderId, status) => onStatusUpdate(courtCase.id, orderId, status)}
+              onDeleteOrder={onDeleteOrder ? (orderId) => onDeleteOrder(courtCase.id, orderId) : undefined}
             />
           </CardContent>
         </CollapsibleContent>

@@ -2,7 +2,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { FileText, Calendar, Clock, CheckCircle } from "lucide-react";
+import { FileText, Calendar, Clock, CheckCircle, Trash2 } from "lucide-react";
 import { CourtOrder } from "@/types/court-case";
 import { format } from "date-fns";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
@@ -14,6 +14,7 @@ import { useToast } from "@/hooks/use-toast";
 interface OrdersListProps {
   orders: CourtOrder[];
   onStatusUpdate: (orderId: string, status: 'pending' | 'in-progress' | 'completed') => void;
+  onDeleteOrder?: (orderId: string) => void;
 }
 
 interface CompleteOrderDialogState {
@@ -22,7 +23,7 @@ interface CompleteOrderDialogState {
   orderTitle: string;
 }
 
-export function OrdersList({ orders, onStatusUpdate }: OrdersListProps) {
+export function OrdersList({ orders, onStatusUpdate, onDeleteOrder }: OrdersListProps) {
   const [showCompleted, setShowCompleted] = useState(false);
   const [completeDialog, setCompleteDialog] = useState<CompleteOrderDialogState>({
     open: false,
@@ -112,34 +113,71 @@ export function OrdersList({ orders, onStatusUpdate }: OrdersListProps) {
           </div>
         )}
 
-        {order.status !== 'completed' && (
-          <div className="flex items-center gap-2">
-            <span className="text-sm font-medium">Status:</span>
-            <Select
-              value={order.status}
-              onValueChange={(value: 'pending' | 'in-progress' | 'completed') => {
-                if (value === 'completed') {
-                  setCompleteDialog({
-                    open: true,
-                    orderId: order.id,
-                    orderTitle: order.fileName
-                  });
-                } else {
-                  onStatusUpdate(order.id, value);
+        <div className="flex items-center justify-between">
+          {order.status !== 'completed' && (
+            <div className="flex items-center gap-2">
+              <span className="text-sm font-medium">Status:</span>
+              <Select
+                value={order.status}
+                onValueChange={(value: 'pending' | 'in-progress' | 'completed') => {
+                  if (value === 'completed') {
+                    setCompleteDialog({
+                      open: true,
+                      orderId: order.id,
+                      orderTitle: order.fileName
+                    });
+                  } else {
+                    onStatusUpdate(order.id, value);
+                  }
+                }}
+              >
+                <SelectTrigger className="w-32">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="pending">Pending</SelectItem>
+                  <SelectItem value="in-progress">In Progress</SelectItem>
+                  <SelectItem value="completed">Completed</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          )}
+          
+          {onDeleteOrder && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={async () => {
+                if (window.confirm('Are you sure you want to delete this order? This action cannot be undone.')) {
+                  try {
+                    const { error } = await supabase
+                      .from('court_orders')
+                      .delete()
+                      .eq('id', order.id);
+                    
+                    if (error) throw error;
+                    
+                    onDeleteOrder(order.id);
+                    toast({
+                      title: "Order deleted",
+                      description: "Order has been deleted successfully",
+                    });
+                  } catch (error) {
+                    console.error('Error deleting order:', error);
+                    toast({
+                      title: "Error",
+                      description: "Failed to delete order",
+                      variant: "destructive",
+                    });
+                  }
                 }
               }}
+              className="text-destructive hover:bg-destructive/10"
             >
-              <SelectTrigger className="w-32">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="pending">Pending</SelectItem>
-                <SelectItem value="in-progress">In Progress</SelectItem>
-                <SelectItem value="completed">Completed</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-        )}
+              <Trash2 className="w-4 h-4" />
+            </Button>
+          )}
+        </div>
       </CardContent>
     </Card>
   );

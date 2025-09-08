@@ -173,6 +173,20 @@ const Index = () => {
     });
   };
 
+  const handleDeleteOrder = (caseId: string, orderId: string) => {
+    setDashboardData(prev => ({
+      ...prev,
+      cases: prev.cases.map(case_ => 
+        case_.id === caseId
+          ? {
+              ...case_,
+              orders: case_.orders.filter(order => order.id !== orderId)
+            }
+          : case_
+      )
+    }));
+  };
+
   const handleUploadOrder = () => {
     // Refresh data after upload
     fetchCasesAndOrders();
@@ -236,6 +250,7 @@ const Index = () => {
                     setSelectedCaseNumber(caseNumber);
                     setUploadDialogOpen(true);
                   }}
+                  onDeleteOrder={handleDeleteOrder}
                 />
               ))}
             </div>
