@@ -116,15 +116,18 @@ export function UploadOrderDialog({ open, onOpenChange, caseNumber, onUpload }: 
       // Also upload files to Supabase storage for backup/viewing
       const uploadPromises = [];
       
+      // Use case number from prop or generate a temporary one for organization
+      const folderCaseNumber = caseNumber || `case-${timestamp}`;
+      
       if (courtOrderFile) {
-        const courtOrderPath = `${user.id}/court-order-${timestamp}.${courtOrderFile.name.split('.').pop()}`;
+        const courtOrderPath = `${user.id}/${folderCaseNumber}/court-order-${timestamp}.${courtOrderFile.name.split('.').pop()}`;
         uploadPromises.push(
           supabase.storage.from('court-documents').upload(courtOrderPath, courtOrderFile)
         );
       }
       
       if (caseStatusFile) {
-        const caseStatusPath = `${user.id}/case-status-${timestamp}.${caseStatusFile.name.split('.').pop()}`;
+        const caseStatusPath = `${user.id}/${folderCaseNumber}/case-status-${timestamp}.${caseStatusFile.name.split('.').pop()}`;
         uploadPromises.push(
           supabase.storage.from('court-documents').upload(caseStatusPath, caseStatusFile)
         );
