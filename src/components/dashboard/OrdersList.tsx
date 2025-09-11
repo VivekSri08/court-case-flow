@@ -49,9 +49,11 @@ export function OrdersList({ orders, onStatusUpdate, onDeleteOrder }: OrdersList
       <CardHeader className="pb-3">
         <div className="flex items-start justify-between">
           <div className="space-y-1">
-            <CardTitle className="text-base">{order.fileName}</CardTitle>
+            <CardTitle className="text-base">
+              {order.fileName || 'Court Order Document'}
+            </CardTitle>
             <CardDescription className="text-sm">
-              {order.summary}
+              {order.summary || 'Processing court order...'}
             </CardDescription>
           </div>
           <Badge className={getStatusColor(order.status)}>
@@ -61,7 +63,7 @@ export function OrdersList({ orders, onStatusUpdate, onDeleteOrder }: OrdersList
       </CardHeader>
       <CardContent className="space-y-3">
         <div className="text-sm">
-          <span className="font-medium">Action Required:</span> {order.actionRequired}
+          <span className="font-medium">Action Required:</span> {order.actionRequired || 'No specific action required'}
         </div>
         
         <div className="flex items-center gap-4 text-sm text-muted-foreground">
