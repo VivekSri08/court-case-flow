@@ -3,22 +3,26 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { ChevronDown, ChevronUp, FileText, Calendar, Upload, Eye } from "lucide-react";
+import { ChevronDown, ChevronUp, FileText, Calendar, Upload, Eye, Trash2 } from "lucide-react";
 import { CourtCase } from "@/types/court-case";
 import { OrdersList } from "./OrdersList";
 import { ViewOrdersDialog } from "./ViewOrdersDialog";
 import { format } from "date-fns";
+import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 
 interface CaseCardProps {
   courtCase: CourtCase;
   onStatusUpdate: (caseId: string, orderId: string, status: 'pending' | 'in-progress' | 'completed') => void;
   onUploadOrder: (caseNumber: string) => void;
   onDeleteOrder?: (caseId: string, orderId: string) => void;
+  onDeleteCase?: (caseId: string) => void;
 }
 
-export function CaseCard({ courtCase, onStatusUpdate, onUploadOrder, onDeleteOrder }: CaseCardProps) {
+export function CaseCard({ courtCase, onStatusUpdate, onUploadOrder, onDeleteOrder, onDeleteCase }: CaseCardProps) {
   const [isExpanded, setIsExpanded] = useState(false);
   const [showViewOrdersDialog, setShowViewOrdersDialog] = useState(false);
+  const { toast } = useToast();
 
   const getUrgencyColor = (urgency: 'urgent' | 'warning' | 'normal') => {
     switch (urgency) {
@@ -29,10 +33,46 @@ export function CaseCard({ courtCase, onStatusUpdate, onUploadOrder, onDeleteOrd
   };
 
   const getUrgencyText = (urgency: 'urgent' | 'warning' | 'normal') => {
+    // Get timeline from latest order if available
+    const latestOrder = courtCase.orders.length > 0 ? courtCase.orders[0] : null;
+    if (latestOrder?.deadline) {
+      const daysUntilDeadline = Math.ceil((latestOrder.deadline.getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24));
+      if (daysUntilDeadline <= 2) return `Deadline in ${daysUntilDeadline} days`;
+      if (daysUntilDeadline <= 5) return `Deadline in ${daysUntilDeadline} days`;
+      return `Deadline: ${format(latestOrder.deadline, 'dd/MM/yyyy')}`;
+    }
+    
     switch (urgency) {
       case 'urgent': return 'Action within 2 days';
       case 'warning': return 'Action within 5 days';
       case 'normal': return 'No immediate deadline';
+    }
+  };
+
+  const handleDeleteCase = async () => {
+    if (window.confirm(`Are you sure you want to delete case ${courtCase.caseNumber}? This will also delete all associated orders.`)) {
+      try {
+        const { error } = await supabase
+          .from('court_cases')
+          .delete()
+          .eq('id', courtCase.id);
+
+        if (error) throw error;
+
+        toast({
+          title: "Case deleted",
+          description: "Case and all associated orders have been removed.",
+        });
+
+        onDeleteCase?.(courtCase.id);
+      } catch (error) {
+        console.error('Error deleting case:', error);
+        toast({
+          title: "Error",
+          description: "Failed to delete case. Please try again.",
+          variant: "destructive",
+        });
+      }
     }
   };
 
@@ -44,7 +84,9 @@ export function CaseCard({ courtCase, onStatusUpdate, onUploadOrder, onDeleteOrd
       <CardHeader>
         <div className="flex items-start justify-between">
           <div className="space-y-1">
-            <CardTitle className="text-lg">{courtCase.caseNumber}</CardTitle>
+            <CardTitle className="text-lg">
+              Case type(Writ A/B/C/PIL): {courtCase.caseNumber}
+            </CardTitle>
             <CardDescription className="text-sm">
               <span className="font-medium">Petitioner:</span> {courtCase.petitioner}
             </CardDescription>
@@ -52,7 +94,7 @@ export function CaseCard({ courtCase, onStatusUpdate, onUploadOrder, onDeleteOrd
               <span className="font-medium">Respondent:</span> {courtCase.respondent}
             </CardDescription>
             <CardDescription className="text-sm">
-              <span className="font-medium">Court:</span> {courtCase.courtName}
+              <span className="font-medium">Court No.:</span> {courtCase.courtName}
             </CardDescription>
           </div>
           <Badge className={getUrgencyColor(courtCase.urgency)}>
@@ -63,12 +105,12 @@ export function CaseCard({ courtCase, onStatusUpdate, onUploadOrder, onDeleteOrd
         <div className="flex items-center gap-4 text-sm text-muted-foreground">
           <div className="flex items-center gap-1">
             <FileText className="w-4 h-4" />
-            <span>Latest: {format(courtCase.latestOrderDate, 'dd/MM/yyyy')}</span>
+            <span>Last Hearing Date: {format(courtCase.latestOrderDate, 'dd/MM/yyyy')}</span>
           </div>
           {courtCase.nextHearingDate && (
             <div className="flex items-center gap-1">
               <Calendar className="w-4 h-4" />
-              <span>Next: {format(courtCase.nextHearingDate, 'dd/MM/yyyy')}</span>
+              <span>Next Date: {format(courtCase.nextHearingDate, 'dd/MM/yyyy')}</span>
             </div>
           )}
         </div>
@@ -98,6 +140,14 @@ export function CaseCard({ courtCase, onStatusUpdate, onUploadOrder, onDeleteOrd
             >
               <Upload className="w-4 h-4 mr-1" />
               Upload Order
+            </Button>
+            <Button
+              variant="destructive"
+              size="sm"
+              onClick={handleDeleteCase}
+            >
+              <Trash2 className="w-4 h-4 mr-1" />
+              Delete Case
             </Button>
             <Collapsible open={isExpanded} onOpenChange={setIsExpanded}>
               <CollapsibleTrigger asChild>

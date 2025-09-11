@@ -98,6 +98,13 @@ const Index = () => {
       navigate('/auth');
     } else if (user) {
       fetchCasesAndOrders();
+      
+      // Set up polling only when data is stale (every 30 seconds instead of constant)
+      const pollInterval = setInterval(() => {
+        fetchCasesAndOrders();
+      }, 30000);
+
+      return () => clearInterval(pollInterval);
     }
   }, [user, loading, navigate]);
 
@@ -187,6 +194,13 @@ const Index = () => {
     }));
   };
 
+  const handleDeleteCase = (caseId: string) => {
+    setDashboardData(prev => ({
+      ...prev,
+      cases: prev.cases.filter(case_ => case_.id !== caseId)
+    }));
+  };
+
   const handleUploadOrder = () => {
     // Refresh data after upload
     fetchCasesAndOrders();
@@ -251,6 +265,7 @@ const Index = () => {
                     setUploadDialogOpen(true);
                   }}
                   onDeleteOrder={handleDeleteOrder}
+                  onDeleteCase={handleDeleteCase}
                 />
               ))}
             </div>

@@ -3,9 +3,8 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Upload, FileText, Plus, X } from "lucide-react";
+import { Progress } from "@/components/ui/progress";
+import { Upload, FileText, X, CheckCircle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -19,8 +18,9 @@ interface UploadOrderDialogProps {
 export function UploadOrderDialog({ open, onOpenChange, caseNumber, onUpload }: UploadOrderDialogProps) {
   const [courtOrderFile, setCourtOrderFile] = useState<File | null>(null);
   const [caseStatusFile, setCaseStatusFile] = useState<File | null>(null);
-  // Remove form data state - we only need files now
   const [isUploading, setIsUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [isSuccess, setIsSuccess] = useState(false);
   const { toast } = useToast();
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>, fileType: 'courtOrder' | 'caseStatus') => {
@@ -64,6 +64,7 @@ export function UploadOrderDialog({ open, onOpenChange, caseNumber, onUpload }: 
     }
 
     setIsUploading(true);
+    setUploadProgress(10);
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
@@ -75,10 +76,14 @@ export function UploadOrderDialog({ open, onOpenChange, caseNumber, onUpload }: 
         return;
       }
 
+      setUploadProgress(20);
+      
       // Create timestamp for consistent file naming
       const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
       const folderCaseNumber = caseNumber || `case-${timestamp}`;
 
+      setUploadProgress(40);
+      
       // Prepare form data for single webhook
       const webhookFormData = new FormData();
       webhookFormData.append('userId', user.id);
@@ -108,21 +113,38 @@ export function UploadOrderDialog({ open, onOpenChange, caseNumber, onUpload }: 
         webhookFormData.append('caseStatus', standardizedCaseStatus);
       }
 
+      setUploadProgress(60);
+      
       // Send to single webhook
       const webhookResponse = await fetch('https://anant1213.app.n8n.cloud/webhook/f72270a3-715a-4fd1-882a-f5d2fb4c499d', {
         method: 'POST',
         body: webhookFormData,
       });
 
+      setUploadProgress(80);
+
+      if (!webhookResponse.ok) {
+        throw new Error('Upload failed');
+      }
+
+      setUploadProgress(100);
+      setIsSuccess(true);
+      
+      // Show success message
       toast({
         title: "Documents uploaded successfully",
-        description: "Files have been sent for processing and will appear in your dashboard shortly",
+        description: "Files are being processed. Your dashboard will update automatically when ready.",
       });
-      
-      // Reset form
-      setCourtOrderFile(null);
-      setCaseStatusFile(null);
-      onOpenChange(false);
+
+      // Wait a moment to show success state, then close and reset
+      setTimeout(() => {
+        setCourtOrderFile(null);
+        setCaseStatusFile(null);
+        setIsSuccess(false);
+        setUploadProgress(0);
+        onUpload(null); // Trigger immediate refresh
+        onOpenChange(false);
+      }, 2000);
     } catch (error) {
       console.error('Upload error:', error);
       toast({
@@ -131,7 +153,10 @@ export function UploadOrderDialog({ open, onOpenChange, caseNumber, onUpload }: 
         variant: "destructive",
       });
     } finally {
-      setIsUploading(false);
+      if (!isSuccess) {
+        setIsUploading(false);
+        setUploadProgress(0);
+      }
     }
   };
 
@@ -204,6 +229,23 @@ export function UploadOrderDialog({ open, onOpenChange, caseNumber, onUpload }: 
             </div>
           </div>
 
+          {isUploading && (
+            <div className="space-y-2">
+              <div className="flex items-center justify-between text-sm">
+                <span>Uploading files...</span>
+                <span>{uploadProgress}%</span>
+              </div>
+              <Progress value={uploadProgress} className="h-2" />
+            </div>
+          )}
+
+          {isSuccess && (
+            <div className="flex items-center justify-center gap-2 p-4 text-success">
+              <CheckCircle className="w-5 h-5" />
+              <span className="font-medium">Upload successful!</span>
+            </div>
+          )}
+
           <div className="flex gap-2 pt-4">
             <Button
               type="button"
@@ -215,11 +257,11 @@ export function UploadOrderDialog({ open, onOpenChange, caseNumber, onUpload }: 
             </Button>
             <Button
               type="submit"
-              disabled={isUploading}
+              disabled={isUploading || isSuccess}
               className="flex-1"
             >
               <Upload className="w-4 h-4 mr-2" />
-              {isUploading ? "Uploading..." : "Upload Order"}
+              {isUploading ? "Processing..." : isSuccess ? "Completed!" : "Upload Order"}
             </Button>
           </div>
         </form>
