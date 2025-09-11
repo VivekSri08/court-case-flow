@@ -79,15 +79,13 @@ export function UploadOrderDialog({ open, onOpenChange, caseNumber, onUpload }: 
       const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
       const folderCaseNumber = caseNumber || `case-${timestamp}`;
 
-      // Send files to separate webhooks
-      const webhookPromises = [];
+      // Prepare form data for single webhook
+      const webhookFormData = new FormData();
+      webhookFormData.append('userId', user.id);
+      webhookFormData.append('caseNumber', folderCaseNumber);
       
       if (courtOrderFile) {
-        const courtOrderFormData = new FormData();
-        courtOrderFormData.append('userId', user.id);
-        courtOrderFormData.append('caseNumber', folderCaseNumber);
-        courtOrderFormData.append('fileType', 'court-order');
-        courtOrderFormData.append('filePath', `${user.id}/${folderCaseNumber}/court-order-${timestamp}.${courtOrderFile.name.split('.').pop()}`);
+        webhookFormData.append('courtOrderFilePath', `${user.id}/${folderCaseNumber}/court-order-${timestamp}.${courtOrderFile.name.split('.').pop()}`);
         
         const courtOrderBlob = new Blob([courtOrderFile], { type: courtOrderFile.type });
         const standardizedCourtOrder = new File(
@@ -95,22 +93,11 @@ export function UploadOrderDialog({ open, onOpenChange, caseNumber, onUpload }: 
           `court-order-${timestamp}.${courtOrderFile.name.split('.').pop()}`,
           { type: courtOrderFile.type }
         );
-        courtOrderFormData.append('data', standardizedCourtOrder);
-        
-        webhookPromises.push(
-          fetch('https://anant1213.app.n8n.cloud/form/9e1c49e7-941f-4188-ba41-ae44d4264907', {
-            method: 'POST',
-            body: courtOrderFormData,
-          })
-        );
+        webhookFormData.append('courtOrder', standardizedCourtOrder);
       }
       
       if (caseStatusFile) {
-        const caseStatusFormData = new FormData();
-        caseStatusFormData.append('userId', user.id);
-        caseStatusFormData.append('caseNumber', folderCaseNumber);
-        caseStatusFormData.append('fileType', 'case-status');
-        caseStatusFormData.append('filePath', `${user.id}/${folderCaseNumber}/case-status-${timestamp}.${caseStatusFile.name.split('.').pop()}`);
+        webhookFormData.append('caseStatusFilePath', `${user.id}/${folderCaseNumber}/case-status-${timestamp}.${caseStatusFile.name.split('.').pop()}`);
         
         const caseStatusBlob = new Blob([caseStatusFile], { type: caseStatusFile.type });
         const standardizedCaseStatus = new File(
@@ -118,23 +105,17 @@ export function UploadOrderDialog({ open, onOpenChange, caseNumber, onUpload }: 
           `case-status-${timestamp}.${caseStatusFile.name.split('.').pop()}`,
           { type: caseStatusFile.type }
         );
-        caseStatusFormData.append('data', standardizedCaseStatus);
-        
-        webhookPromises.push(
-          fetch('https://anant1213.app.n8n.cloud/form/196258e8-b087-417c-acf5-7bf0306b4535', {
-            method: 'POST',
-            body: caseStatusFormData,
-          })
-        );
+        webhookFormData.append('caseStatus', standardizedCaseStatus);
       }
 
-      // Wait for all webhook calls to complete
-      const webhookResponses = await Promise.all(webhookPromises);
-      
-      // Check if any webhook failed
-      const failedWebhooks = webhookResponses.filter(response => !response.ok);
-      if (failedWebhooks.length > 0) {
-        throw new Error('One or more webhook uploads failed');
+      // Send to single webhook
+      const webhookResponse = await fetch('https://anant1213.app.n8n.cloud/webhook/f72270a3-715a-4fd1-882a-f5d2fb4c499d', {
+        method: 'POST',
+        body: webhookFormData,
+      });
+
+      if (!webhookResponse.ok) {
+        throw new Error('Webhook upload failed');
       }
 
       // Also upload files to Supabase storage for backup/viewing
