@@ -114,29 +114,6 @@ export function UploadOrderDialog({ open, onOpenChange, caseNumber, onUpload }: 
         body: webhookFormData,
       });
 
-      if (!webhookResponse.ok) {
-        throw new Error('Webhook upload failed');
-      }
-
-      // Also upload files to Supabase storage for backup/viewing
-      const uploadPromises = [];
-      
-      if (courtOrderFile) {
-        const courtOrderPath = `${user.id}/${folderCaseNumber}/court-order-${timestamp}.${courtOrderFile.name.split('.').pop()}`;
-        uploadPromises.push(
-          supabase.storage.from('court-documents').upload(courtOrderPath, courtOrderFile)
-        );
-      }
-      
-      if (caseStatusFile) {
-        const caseStatusPath = `${user.id}/${folderCaseNumber}/case-status-${timestamp}.${caseStatusFile.name.split('.').pop()}`;
-        uploadPromises.push(
-          supabase.storage.from('court-documents').upload(caseStatusPath, caseStatusFile)
-        );
-      }
-
-      await Promise.all(uploadPromises);
-      
       toast({
         title: "Documents uploaded successfully",
         description: "Files have been sent for processing and will appear in your dashboard shortly",
