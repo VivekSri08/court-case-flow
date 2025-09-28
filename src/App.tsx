@@ -37,12 +37,6 @@ const App = () => (
           <Route path="*" element={<NotFound />} />
         </Routes>
         
-        {/* Testing navigation - remove after testing */}
-        <div className="fixed bottom-4 right-4 bg-primary text-primary-foreground px-4 py-2 rounded-lg shadow-lg z-50">
-          <a href="/dashboard" className="text-white font-medium hover:underline">
-            🧪 Test Dashboard
-          </a>
-        </div>
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>
