@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Reset Function</title>
+</head>
+<body>
+    <h1>Testing Password Reset</h1>
+    <button id="resetBtn">Reset Test User Password</button>
+    <div id="result"></div>
+
+    <script>
+        document.getElementById('resetBtn').addEventListener('click', async () => {
+            const resultDiv = document.getElementById('result');
+            resultDiv.innerHTML = 'Calling function...';
+            
+            try {
+                const response = await fetch('https://nuvysdrckdlakgqutyqv.supabase.co/functions/v1/admin-reset-test-user', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({})
+                });
+                
+                const data = await response.json();
+                resultDiv.innerHTML = `<pre>${JSON.stringify(data, null, 2)}</pre>`;
+            } catch (error) {
+                resultDiv.innerHTML = `Error: ${error.message}`;
+            }
+        });
+    </script>
+</body>
+</html>
