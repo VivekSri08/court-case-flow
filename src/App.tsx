@@ -10,6 +10,9 @@ import Privacy from "./pages/Privacy";
 import NotFound from "./pages/NotFound";
 import { AuthPage } from "@/components/auth/AuthPage";
 import { ProfilePage } from "@/components/profile/ProfilePage";
+import UploadCase from "./pages/UploadCase";
+import CaseDashboard from "./pages/CaseDashboard";
+import CaseDetail from "./pages/CaseDetail";
 
 const queryClient = new QueryClient();
 
@@ -20,12 +23,16 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <Routes>
-          <Route path="/dashboard" element={<Index />} />
+          <Route path="/dashboard" element={<CaseDashboard />} />
+          <Route path="/upload" element={<UploadCase />} />
+          <Route path="/case/:id" element={<CaseDetail />} />
           <Route path="/" element={<Landing />} />
           <Route path="/auth" element={<AuthPage />} />
           <Route path="/profile" element={<ProfilePage />} />
           <Route path="/terms" element={<Terms />} />
           <Route path="/privacy" element={<Privacy />} />
+          {/* Keep the old route for backward compatibility */}
+          <Route path="/legacy-dashboard" element={<Index />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>

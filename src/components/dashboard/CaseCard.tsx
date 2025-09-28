@@ -17,9 +17,10 @@ interface CaseCardProps {
   onUploadOrder: (caseNumber: string) => void;
   onDeleteOrder?: (caseId: string, orderId: string) => void;
   onDeleteCase?: (caseId: string) => void;
+  onViewDetails?: (caseId: string) => void;
 }
 
-export function CaseCard({ courtCase, onStatusUpdate, onUploadOrder, onDeleteOrder, onDeleteCase }: CaseCardProps) {
+export function CaseCard({ courtCase, onStatusUpdate, onUploadOrder, onDeleteOrder, onDeleteCase, onViewDetails }: CaseCardProps) {
   const [isExpanded, setIsExpanded] = useState(false);
   const [showViewOrdersDialog, setShowViewOrdersDialog] = useState(false);
   const { toast } = useToast();
@@ -125,6 +126,16 @@ export function CaseCard({ courtCase, onStatusUpdate, onUploadOrder, onDeleteOrd
             </Badge>
           </div>
           <div className="flex gap-2">
+            {onViewDetails && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => onViewDetails(courtCase.id)}
+              >
+                <Eye className="w-4 h-4 mr-1" />
+                View Details
+              </Button>
+            )}
             <Button
               variant="outline"
               size="sm"
