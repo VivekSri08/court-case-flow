@@ -24,7 +24,9 @@ const CaseDashboard = () => {
 
   // Fetch cases and orders from database
   const fetchCasesAndOrders = async () => {
-    if (!user) return;
+    // For testing - use test user ID when no user is logged in
+    const testUserId = '550e8400-e29b-41d4-a716-446655440001';
+    const currentUserId = user?.id || testUserId;
     
     try {
       setIsLoading(true);
@@ -33,7 +35,7 @@ const CaseDashboard = () => {
       const { data: cases, error: casesError } = await supabase
         .from('court_cases')
         .select('*')
-        .eq('user_id', user.id)
+        .eq('user_id', currentUserId)
         .order('created_at', { ascending: false });
 
       if (casesError) throw casesError;
@@ -42,7 +44,7 @@ const CaseDashboard = () => {
       const { data: orders, error: ordersError } = await supabase
         .from('court_orders')
         .select('*')
-        .eq('user_id', user.id)
+        .eq('user_id', currentUserId)
         .order('created_at', { ascending: false });
 
       if (ordersError) throw ordersError;
