@@ -96,8 +96,180 @@ const CaseDashboard = () => {
   };
 
   useEffect(() => {
-    if (!loading && !user) {
-      navigate('/auth');
+    // FOR TESTING: Temporarily bypass auth and use test user ID
+    const testUserId = '550e8400-e29b-41d4-a716-446655440001';
+    
+    // Simulate authenticated state for testing
+    if (!user && !loading) {
+      // Create a mock user for testing
+      const mockUser = {
+        id: testUserId,
+        email: 'test@example.com',
+        user_metadata: {},
+        app_metadata: {},
+        aud: 'authenticated',
+        role: 'authenticated',
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+        confirmation_sent_at: null,
+        confirmed_at: new Date().toISOString(),
+        email_confirmed_at: new Date().toISOString(),
+        last_sign_in_at: new Date().toISOString(),
+        phone: null,
+        phone_confirmed_at: null,
+        recovery_sent_at: null,
+        email_change_sent_at: null,
+        new_email: null,
+        email_change: null,
+        new_phone: null,
+        phone_change: null,
+        phone_change_sent_at: null,
+        invited_at: null,
+        action_link: null,
+        email_change_confirm_status: 0,
+        phone_change_confirm_status: 0
+      };
+      
+      // Set up test user data directly for dashboard
+      setDashboardData({
+        cases: [
+          {
+            id: '11111111-1111-1111-1111-111111111111',
+            caseNumber: 'Writ A: 2024/567',
+            petitioner: 'Raj Kumar Sharma',
+            respondent: 'State of U.P. and others',
+            courtName: 'Court No. 15',
+            latestOrderDate: new Date('2024-09-26'),
+            nextHearingDate: new Date('2024-09-29'),
+            urgency: 'urgent' as const,
+            orders: [{
+              id: 'a1111111-1111-1111-1111-111111111111',
+              caseNumber: 'Writ A: 2024/567',
+              orderDate: new Date('2024-09-26'),
+              uploadDate: new Date(),
+              fileName: 'order_26_09_2024.pdf',
+              fileUrl: '/mock-files/order_26_09_2024.pdf',
+              summary: 'Court directed petitioner to file rejoinder within 2 days',
+              actionRequired: 'File rejoinder affidavit within 2 days',
+              deadline: new Date('2024-09-28'),
+              status: 'pending' as const
+            }]
+          },
+          {
+            id: '22222222-2222-2222-2222-222222222222',
+            caseNumber: 'Writ B: 2024/892',
+            petitioner: 'Priya Singh',
+            respondent: 'Municipal Corporation and others',
+            courtName: 'Court No. 7',
+            latestOrderDate: new Date('2024-09-25'),
+            nextHearingDate: new Date('2024-10-02'),
+            urgency: 'warning' as const,
+            orders: [{
+              id: 'a2222222-2222-2222-2222-222222222222',
+              caseNumber: 'Writ B: 2024/892',
+              orderDate: new Date('2024-09-25'),
+              uploadDate: new Date(),
+              fileName: 'notice_25_09_2024.pdf',
+              fileUrl: '/mock-files/notice_25_09_2024.pdf',
+              summary: 'Notice issued to Municipal Corporation',
+              actionRequired: 'Monitor respondent compliance and prepare arguments',
+              deadline: new Date('2024-10-23'),
+              status: 'in-progress' as const
+            }]
+          },
+          {
+            id: '33333333-3333-3333-3333-333333333333',
+            caseNumber: 'PIL: 2024/234',
+            petitioner: 'Citizens Welfare Association',
+            respondent: 'State of U.P. and others',
+            courtName: 'Court No. 3',
+            latestOrderDate: new Date('2024-09-20'),
+            nextHearingDate: new Date('2024-10-15'),
+            urgency: 'normal' as const,
+            orders: [
+              {
+                id: 'a3333333-3333-3333-3333-333333333333',
+                caseNumber: 'PIL: 2024/234',
+                orderDate: new Date('2024-09-20'),
+                uploadDate: new Date(),
+                fileName: 'compliance_order_20_09_2024.pdf',
+                fileUrl: '/mock-files/compliance_order_20_09_2024.pdf',
+                summary: 'Court directed state to submit compliance report within 3 weeks',
+                actionRequired: 'Review compliance report when filed',
+                deadline: new Date('2024-10-11'),
+                status: 'pending' as const
+              },
+              {
+                id: 'b3333333-3333-3333-3333-333333333333',
+                caseNumber: 'PIL: 2024/234',
+                orderDate: new Date('2024-08-15'),
+                uploadDate: new Date(),
+                fileName: 'interim_order_15_08_2024.pdf',
+                fileUrl: '/mock-files/interim_order_15_08_2024.pdf',
+                summary: 'Interim directions issued for pollution control measures',
+                actionRequired: 'Monitor implementation of interim directions',
+                status: 'completed' as const
+              }
+            ]
+          },
+          {
+            id: '44444444-4444-4444-4444-444444444444',
+            caseNumber: 'Criminal: 2024/1456',
+            petitioner: 'State vs Amit Kumar',
+            respondent: 'Amit Kumar',
+            courtName: 'Court No. 12',
+            latestOrderDate: new Date('2024-09-22'),
+            nextHearingDate: new Date('2024-10-05'),
+            urgency: 'warning' as const,
+            orders: [{
+              id: 'a4444444-4444-4444-4444-444444444444',
+              caseNumber: 'Criminal: 2024/1456',
+              orderDate: new Date('2024-09-22'),
+              uploadDate: new Date(),
+              fileName: 'bail_order_reserved_22_09_2024.pdf',
+              fileUrl: '/mock-files/bail_order_reserved_22_09_2024.pdf',
+              summary: 'Court reserved order on bail application',
+              actionRequired: 'Appear for pronouncement of bail order',
+              deadline: new Date('2024-10-05'),
+              status: 'pending' as const
+            }]
+          },
+          {
+            id: '55555555-5555-5555-5555-555555555555',
+            caseNumber: 'Civil: 2024/789',
+            petitioner: 'ABC Private Ltd',
+            respondent: 'XYZ Corporation and others',
+            courtName: 'Court No. 9',
+            latestOrderDate: new Date('2024-09-28'),
+            urgency: 'normal' as const,
+            orders: [
+              {
+                id: 'a5555555-5555-5555-5555-555555555555',
+                caseNumber: 'Civil: 2024/789',
+                orderDate: new Date('2024-09-28'),
+                uploadDate: new Date(),
+                fileName: 'final_judgment_28_09_2024.pdf',
+                fileUrl: '/mock-files/final_judgment_28_09_2024.pdf',
+                summary: 'Final judgment delivered in favor of petitioner with costs',
+                actionRequired: 'Case disposed of successfully',
+                status: 'completed' as const
+              },
+              {
+                id: 'b5555555-5555-5555-5555-555555555555',
+                caseNumber: 'Civil: 2024/789',
+                orderDate: new Date('2024-09-10'),
+                uploadDate: new Date(),
+                fileName: 'arguments_completion_10_09_2024.pdf',
+                fileUrl: '/mock-files/arguments_completion_10_09_2024.pdf',
+                summary: 'Arguments concluded. Judgment reserved',
+                actionRequired: 'Await final judgment',
+                status: 'completed' as const
+              }
+            ]
+          }
+        ]
+      });
+      setIsLoading(false);
     } else if (user) {
       fetchCasesAndOrders();
       
@@ -289,9 +461,10 @@ const CaseDashboard = () => {
     );
   }
 
-  if (!user) {
-    return null;
-  }
+  // For testing: Allow access without authentication
+  // if (!user) {
+  //   return null;
+  // }
 
   return (
     <div className="min-h-screen bg-muted/30">
