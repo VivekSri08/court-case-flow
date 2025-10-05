@@ -1,10 +1,4 @@
 project_id = "nuvysdrckdlakgqutyqv"
 
-[functions.admin-reset-test-user]
-verify_jwt = false
-
-[functions.admin-reset-and-seed]
-verify_jwt = false
-
-[functions.admin-create-test-profile]
+[functions.seed-test-data]
 verify_jwt = false

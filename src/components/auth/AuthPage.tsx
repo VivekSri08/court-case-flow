@@ -157,61 +157,6 @@ export function AuthPage() {
     }
   };
 
-  const handleResetTestUser = async () => {
-    setIsLoading(true);
-    try {
-      const { error } = await supabase.functions.invoke('admin-reset-test-user', { body: {} });
-      if (error) throw error;
-      toast({ title: 'Test user reset', description: 'Credentials set. Email: test@courtdashboard.com' });
-      setEmail('test@courtdashboard.com');
-      setPassword('Password123!');
-    } catch (err: any) {
-      toast({ title: 'Reset failed', description: err?.message || 'Could not reset test user.', variant: 'destructive' });
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleFullResetSeed = async () => {
-    setIsLoading(true);
-    try {
-      const { data, error } = await supabase.functions.invoke('admin-reset-and-seed', { body: {} });
-      if (error) throw error;
-      toast({ title: 'Database reset & seeded', description: 'New test user with 5 cases created.' });
-      setEmail('test@courtdashboard.com');
-      setPassword('Password123!');
-    } catch (err: any) {
-      toast({ title: 'Reset & seed failed', description: err?.message || 'Could not reset and seed database.', variant: 'destructive' });
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-
-  const handleCreateTestProfile = async () => {
-    setIsLoading(true);
-    try {
-      const { data, error } = await supabase.functions.invoke('admin-create-test-profile', { body: {} });
-      if (error) throw error;
-
-      if (!data?.success) {
-        toast({
-          title: 'Test user not found',
-          description: data?.error || 'Please run "Full reset & seed" first, then try again.',
-          variant: 'destructive',
-        });
-        return;
-      }
-
-      toast({ title: 'Test profile created', description: 'A profile was created/updated for the test user.' });
-      setEmail('test@courtdashboard.com');
-      setPassword('Password123!');
-    } catch (err: any) {
-      toast({ title: 'Profile creation failed', description: err?.message || 'Could not create test profile.', variant: 'destructive' });
-    } finally {
-      setIsLoading(false);
-    }
-  };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background to-muted p-4">
@@ -273,35 +218,6 @@ export function AuthPage() {
                       'Sign In'
                     )}
                   </Button>
-                  <div className="mt-2 flex items-center justify-center gap-2">
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      onClick={handleResetTestUser}
-                      disabled={isLoading}
-                    >
-                      Reset test user
-                    </Button>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      onClick={handleFullResetSeed}
-                      disabled={isLoading}
-                    >
-                      Full reset & seed
-                    </Button>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      onClick={handleCreateTestProfile}
-                      disabled={isLoading}
-                    >
-                      Create test profile
-                    </Button>
-                  </div>
                 </form>
               </TabsContent>
               
