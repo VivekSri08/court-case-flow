@@ -5,3 +5,6 @@ verify_jwt = false
 
 [functions.admin-reset-and-seed]
 verify_jwt = false
+
+[functions.admin-create-test-profile]
+verify_jwt = false

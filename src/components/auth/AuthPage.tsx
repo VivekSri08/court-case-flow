@@ -187,6 +187,22 @@ export function AuthPage() {
     }
   };
 
+
+  const handleCreateTestProfile = async () => {
+    setIsLoading(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('admin-create-test-profile', { body: {} });
+      if (error) throw error;
+      toast({ title: 'Test profile created', description: 'A profile was created/updated for the test user.' });
+      setEmail('test@courtdashboard.com');
+      setPassword('Password123!');
+    } catch (err: any) {
+      toast({ title: 'Profile creation failed', description: err?.message || 'Could not create test profile.', variant: 'destructive' });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background to-muted p-4">
       <div className="w-full max-w-md">
@@ -265,6 +281,15 @@ export function AuthPage() {
                       disabled={isLoading}
                     >
                       Full reset & seed
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={handleCreateTestProfile}
+                      disabled={isLoading}
+                    >
+                      Create test profile
                     </Button>
                   </div>
                 </form>
