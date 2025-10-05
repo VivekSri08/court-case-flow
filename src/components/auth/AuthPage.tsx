@@ -160,22 +160,28 @@ export function AuthPage() {
   const handleResetTestUser = async () => {
     setIsLoading(true);
     try {
-      const { data, error } = await supabase.functions.invoke('admin-reset-test-user', {
-        body: {},
-      });
+      const { error } = await supabase.functions.invoke('admin-reset-test-user', { body: {} });
       if (error) throw error;
-      toast({
-        title: 'Test user reset',
-        description: 'Credentials set. Email: test@courtdashboard.com',
-      });
+      toast({ title: 'Test user reset', description: 'Credentials set. Email: test@courtdashboard.com' });
       setEmail('test@courtdashboard.com');
       setPassword('Password123!');
     } catch (err: any) {
-      toast({
-        title: 'Reset failed',
-        description: err?.message || 'Could not reset test user.',
-        variant: 'destructive',
-      });
+      toast({ title: 'Reset failed', description: err?.message || 'Could not reset test user.', variant: 'destructive' });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleFullResetSeed = async () => {
+    setIsLoading(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('admin-reset-and-seed', { body: {} });
+      if (error) throw error;
+      toast({ title: 'Database reset & seeded', description: 'New test user with 5 cases created.' });
+      setEmail('test@courtdashboard.com');
+      setPassword('Password123!');
+    } catch (err: any) {
+      toast({ title: 'Reset & seed failed', description: err?.message || 'Could not reset and seed database.', variant: 'destructive' });
     } finally {
       setIsLoading(false);
     }
@@ -241,7 +247,7 @@ export function AuthPage() {
                       'Sign In'
                     )}
                   </Button>
-                  <div className="mt-2 text-center">
+                  <div className="mt-2 flex items-center justify-center gap-2">
                     <Button
                       type="button"
                       variant="outline"
@@ -250,6 +256,15 @@ export function AuthPage() {
                       disabled={isLoading}
                     >
                       Reset test user
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={handleFullResetSeed}
+                      disabled={isLoading}
+                    >
+                      Full reset & seed
                     </Button>
                   </div>
                 </form>
