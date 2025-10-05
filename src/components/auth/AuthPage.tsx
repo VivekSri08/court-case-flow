@@ -157,6 +157,30 @@ export function AuthPage() {
     }
   };
 
+  const handleResetTestUser = async () => {
+    setIsLoading(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('admin-reset-test-user', {
+        body: {},
+      });
+      if (error) throw error;
+      toast({
+        title: 'Test user reset',
+        description: 'Credentials set. Email: test@courtdashboard.com',
+      });
+      setEmail('test@courtdashboard.com');
+      setPassword('Password123!');
+    } catch (err: any) {
+      toast({
+        title: 'Reset failed',
+        description: err?.message || 'Could not reset test user.',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background to-muted p-4">
       <div className="w-full max-w-md">
@@ -217,6 +241,17 @@ export function AuthPage() {
                       'Sign In'
                     )}
                   </Button>
+                  <div className="mt-2 text-center">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={handleResetTestUser}
+                      disabled={isLoading}
+                    >
+                      Reset test user
+                    </Button>
+                  </div>
                 </form>
               </TabsContent>
               
