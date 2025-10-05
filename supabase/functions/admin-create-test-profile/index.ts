@@ -23,17 +23,15 @@ serve(async (req) => {
     // Ensure user exists
     const { data: users, error: listErr } = await supabaseAdmin.auth.admin.listUsers({ page: 1, perPage: 1000 });
     if (listErr) throw listErr;
-    let user = users.users.find((u) => u.email === testEmail) || null;
+    let user = users.users.find((u) => (u.email || '').toLowerCase() === testEmail) || null;
 
     if (!user) {
-      const { data: createData, error: createErr } = await supabaseAdmin.auth.admin.createUser({
-        email: testEmail,
-        password: 'Password123!',
-        email_confirm: true,
-        user_metadata: { full_name: 'Test User' },
-      });
-      if (createErr) throw createErr;
-      user = createData.user!;
+      // Do not attempt to create the auth user here to avoid 500s from Auth.
+      // Inform caller to run the full reset & seed which handles user creation.
+      return new Response(
+        JSON.stringify({ success: false, error: 'Test user not found. Run Full reset & seed first.' }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
     }
 
     const userId = user.id;

@@ -193,6 +193,16 @@ export function AuthPage() {
     try {
       const { data, error } = await supabase.functions.invoke('admin-create-test-profile', { body: {} });
       if (error) throw error;
+
+      if (!data?.success) {
+        toast({
+          title: 'Test user not found',
+          description: data?.error || 'Please run "Full reset & seed" first, then try again.',
+          variant: 'destructive',
+        });
+        return;
+      }
+
       toast({ title: 'Test profile created', description: 'A profile was created/updated for the test user.' });
       setEmail('test@courtdashboard.com');
       setPassword('Password123!');
